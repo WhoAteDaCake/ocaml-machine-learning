@@ -6,7 +6,6 @@ let append_acc token acc ls =
     token::ls
 
 let tokenize text =
-  let open Token in
   let rec split (tokens: Token.t list) acc = function
   | [] -> List.rev tokens
   | ' '::xs -> split (append_acc WhiteSpace acc tokens) "" xs
