@@ -1,0 +1,1 @@
+let period_words = ["Mr";"Mrs";"Ms";"Prof";"Dr";"Gen";"Rep";"Sen";"St";"Sr";"Jr";"Ph";"Ph.D";"M.D";"B.A";"M.A";"D.D";"D.D.S";"B.C";"b.c";"a.m";"A.M";"p.m";"P.M";"A.D";"a.d";"B.C.E";"C.E";"i.e";"etc";"e.g";"al"]
