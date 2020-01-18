@@ -9,8 +9,7 @@ let split_sentences words =
 	| c::xs -> split ls (c::acc) xs
 	in split [] [] words
 
-let sentence_to_string ss =
-	List.fold_left (fun txt token -> txt ^ " " ^ (Token.to_str token)) "" ss
+(*
+let sentence_to_str ss = list_join Token.to_str " " ss
 
-let doc_to_string ss =
-	List.fold_left (fun a b -> a ^ (sentence_to_string b) ^ "\n>" ) ">" ss
+let doc_to_string ss = list_join sentence_to_str "\n" ss
