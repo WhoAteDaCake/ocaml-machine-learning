@@ -8,3 +8,5 @@ let rm_last_char str =
 let list_join f ch xs =
 	List.fold_left (fun txt x -> txt ^ (f x) ^ ch ) "" xs
 	|> rm_last_char
+
+	let identity a = a

@@ -1,5 +1,7 @@
+open Token
+open Modules
+
 let append_acc token acc ls =
-  let open Token in
   if String.length acc <> 0 then
     token::(Text acc)::ls
   else
@@ -18,7 +20,7 @@ let tokenize text =
 	begin match xs with
 	| [] -> split (append_acc (Separator ".") acc tokens) "" []
 	| ' '::xss ->
-		let chars = Shared.explode acc in
+		let chars = CCString.to_list acc in
 		(* let _ = print_endline acc in *)
 		if Shared.is_abbreviation chars || Shared.is_number chars then
 			split (WhiteSpace::Text(acc ^ ".")::tokens) "" xss
@@ -29,3 +31,26 @@ let tokenize text =
   | c::xs -> split tokens (acc ^ String.make 1 c) xs
   in
   split [] "" (Shared.explode text)
+
+let split_sentences words =
+  let rec split ls acc = function
+  | [] ->
+    let all = if List.length acc = 0 then ls else (List.rev acc)::ls in
+    List.rev all
+  | Separator(s)::xs -> split (List.rev (Separator(s)::acc)::ls) [] xs
+  | c::xs -> split ls (c::acc) xs
+  in
+  split [] [] words
+
+let rec words_only ?lower_case:(lower_case=true) words =
+  let fn =
+    if lower_case then
+      CCString.lowercase_ascii
+    else
+      Helpers.identity
+  in
+  let rec loop acc = function
+  | [] -> List.rev acc
+  | Text(s)::xs -> loop ((fn s)::acc) xs
+  | _::xs -> loop acc xs
+  in loop [] words
