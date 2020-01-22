@@ -29,17 +29,42 @@ let analyse text index =
 	} in
 	output
 
-
-let run () =
-	(* Save documents to a string map *)
-	let (docs, _) = CCList.fold_left (
+let analyse_corpus entries = 
+	let (docs, size) = CCList.fold_left (
 		fun (map, c) (key, text) -> (StringMap.add key (analyse text c) map, c + 1)
-	) (StringMap.empty, 0) texts in
+	) (StringMap.empty, 0) entries in
 	let freqs_cmb = Text.corpus_freqs docs in
 	(* Combine document terms and calculate their inverse frequencies *)
-	let weights = Text.calc_idf (List.length texts) freqs_cmb in
+	let weights = Text.calc_idf size freqs_cmb in
 	let docs = Text.document_vectors k1 b docs weights in
   let matrix = Text.distances docs in
+  (docs, matrix)
+
+let file_path = "/home/augustinas/open-source/mine/machine-learning/exp1/dataset/hansard/1.csv"
+
+let row_to_str row f =
+		CCArray.fold_left (fun str v ->
+			Printf.sprintf "%s%s," str (f v)
+		) "" row
+		|> Helpers.rm_last_char
+
+let csv_to_pairs fname = 
+	let file = Csv.load fname in
+	(* Remove last *)
+	let rows = Csv.to_array file |> CCArray.to_list |> CCList.tl in
+	CCList.fold_left (fun acc xs ->
+		match CCArray.to_list xs with
+		| k::t::xs -> (k, t)::acc 
+		| _ -> acc
+	) [] rows
+
+let run () =
+	(* let file = Csv.load file_path in
+	(* Remove last *)
+	let rows = Csv.to_array file |> CCArray.to_list |> CCList.tail in
+	let _ = row_to_str (rows.(0)) (fun a -> a) |> print_endline in *)
+	let pairs = csv_to_pairs file_path in
+	let (docs, matrix) = analyse_corpus pairs in
   let mtx_str = Matrix.to_string matrix Helpers.long_float_str in
   let _ = print_string mtx_str in
-  Printf.printf "Similarity %s %s : %f\n" "doc1" "doc2" (get_similarity "doc1" "doc2" matrix docs)
+  ()
