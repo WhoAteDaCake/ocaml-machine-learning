@@ -9,4 +9,7 @@ let list_join f ch xs =
 	List.fold_left (fun txt x -> txt ^ (f x) ^ ch ) "" xs
 	|> rm_last_char
 
-	let identity a = a
+let identity a = a
+
+let long_float_str fl =
+	Printf.sprintf "%.6f" fl

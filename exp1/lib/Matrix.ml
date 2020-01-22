@@ -1,27 +1,43 @@
 open Modules
 
-module Map = IntMap
+type 'a t = ('a CCArray.t) CCArray.t
 
-let string_of_index = string_of_int
+let make = CCArray.make_matrix
 
-let empty x y default =
-	let rec fill mk map = function
-	| -1 -> map
-	| n ->  fill mk (Map.add n (mk ()) map) (n - 1)
+let set mt x y value =
+	let row = mt.(y) in
+	let _ = row.(x) <- value in
+	let _ = mt.(y) <- row in
+	mt
+
+let get mt x y =
+	let row = mt.(y) in
+	row.(x)
+
+(*
+	Assumes matrix is the same length
+	And is non empty 
+*)
+let fold mt f acc =
+	let size = CCArray.length mt in
+	let rec loop x y acc =
+		if y = size then
+			acc
+		else if x = size then
+			loop 0 (y + 1) acc
+		else
+			loop (x + 1) y (f x y acc)
 	in
-	fill (fun () -> fill (fun () -> default) Map.empty x) Map.empty y
+	loop 0 0 acc
 
-let row_to_str ?show_index:(show_index=false) row f =
-	Map.fold (fun i v txt ->
-		let pf  = if show_index then (string_of_index i) ^ ", " else "" in
-		txt ^ Printf.sprintf "(%s%s), " pf (f v)
-	) row ""
-	|> Helpers.rm_last_char
-	|> Helpers.rm_last_char
 
-let to_string ?show_index:(show_index=false) matrix f =
-	Map.fold (fun i row txt ->
-		let pf = if show_index then (string_of_index i) ^ ":" else "" in
-		txt ^ Printf.sprintf "%s [%s]\n" pf (row_to_str ~show_index:show_index row f)
-	) matrix ""
-	|> Helpers.rm_last_char
+let to_string mt f =
+	let row_to_str row f =
+		CCArray.fold_left (fun str v ->
+			Printf.sprintf "%s%s," str (f v)
+		) "" row
+		|> Helpers.rm_last_char
+	in
+	CCArray.fold_left (fun str row ->
+		Printf.sprintf "%s[%s]\n" str (row_to_str row f)
+	) "" mt 

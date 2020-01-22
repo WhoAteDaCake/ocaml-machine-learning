@@ -1,37 +1,45 @@
 open Modules
 
-(* let run () =
-	let mx = Matrix.empty 10 10 0.0 in
-	let mx_str = Matrix.to_string ~show_index:true mx string_of_float in
-	print_endline mx_str *)
-
 
 let text = "He is playing in the field. He is running towards the football. The football game ended. It started raining while everyone was playing in the field."
 let texts = [
-  "This is test document number 1. It is quite a short document.";
-  "This is test document 2. It is also quite short, and is a test.";
-  "Test document number three is a bit different and is also a tiny bit longer."
+  "doc1", "This is test document number 1. It is quite a short document.";
+  "doc2", "This is test document 2. It is also quite short, and is a test.";
+  "doc3", "Test document number three is a bit different and is also a tiny bit longer."
 ]
 
 let k1 = 2.0
 let b = 0.75
 
-let analyse text =
+let get_similarity id1 id2 mtx dict =
+	let get id = StringMap.find id dict |> Document.index
+	in
+	Matrix.get mtx (get id1) (get id2)
+
+let analyse text index =
 	let words = Tokenizer.words_only (Tokenizer.tokenize text) in
 	let freqs = Text.word_freqs words in
-	let output: Text.document = { words; freqs; text; size = CCString.length text; vectors = None; } in
+	let output: Document.t = {
+		words;
+		freqs;
+		text;
+		index;
+		size = CCString.length text;
+		vectors = None;
+	} in
 	output
 
+
 let run () =
-	let docs = List.map analyse texts in
-	let freqs_cmb = (List.map (fun (d: Text.document) -> d.freqs) docs) 
-		|> Text.combin_freqs
-	in
+	(* Save documents to a string map *)
+	let (docs, _) = CCList.fold_left (
+		fun (map, c) (key, text) -> (StringMap.add key (analyse text c) map, c + 1)
+	) (StringMap.empty, 0) texts in
+	let freqs_cmb = Text.corpus_freqs docs in
 	(* Combine document terms and calculate their inverse frequencies *)
-	let weights = Text.freq_weights (List.length docs) freqs_cmb in
-	let _ = Text.document_vectors k1 b docs weights in
-	let _ = StringMap.iter (fun k v -> Printf.printf "%s, %f\n" k v) weights in
-(* 	let _ = StringMap.iter (fun k v -> Printf.printf "%s, %d\n" k v) freqs in
-	let _ = print_endline "---------------" in
-	let _ = StringMap.iter (fun k v -> Printf.printf "%s, %d\n" k v) freqs_cmb in		 *)
-  ()
+	let weights = Text.calc_idf (List.length texts) freqs_cmb in
+	let docs = Text.document_vectors k1 b docs weights in
+  let matrix = Text.distances docs in
+  let mtx_str = Matrix.to_string matrix Helpers.long_float_str in
+  let _ = print_string mtx_str in
+  Printf.printf "Similarity %s %s : %f\n" "doc1" "doc2" (get_similarity "doc1" "doc2" matrix docs)
