@@ -47,7 +47,7 @@ let rec words_only ?lower_case:(lower_case=true) words =
     if lower_case then
       CCString.lowercase_ascii
     else
-      Helpers.identity
+      Shared.identity
   in
   let rec loop acc = function
   | [] -> List.rev acc

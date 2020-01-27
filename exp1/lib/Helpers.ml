@@ -1,15 +1,13 @@
 open Modules
 
-let rm_last_char str =
-	CCString.to_list str
-	|> CCList.take ((CCString.length str) - 1)
-	|> CCString.of_list
-
-let list_join f ch xs =
-	List.fold_left (fun txt x -> txt ^ (f x) ^ ch ) "" xs
-	|> rm_last_char
-
-let identity a = a
-
-let long_float_str fl =
-	Printf.sprintf "%.6f" fl
+let csv_to_pairs fname = 
+	let file = Csv.load fname in
+	(* Remove the headers *)
+	let rows = Csv.to_array file |> CCArray.to_list |> CCList.tl in
+	CCList.fold_left (fun acc xs ->
+		match CCArray.to_list xs with
+		| k::t::xs -> (k, t)::acc 
+		| _ ->
+			let _ = Printf.sprintf "Row is invalid, expected [id, text] column layout" in
+			acc
+	) [] rows

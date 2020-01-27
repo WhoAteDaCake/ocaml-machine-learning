@@ -1,3 +1,5 @@
+open Modules
+
 let explode s = List.init (String.length s) (String.get s)
 
 let c_arr_to_str = List.fold_left (fun a b -> a ^ (String.make 1 b)) "" 
@@ -43,3 +45,17 @@ let is_abbreviation word =
 
 let is_number word = 
   List.exists (fun c -> is_numeric c || c = '.' || c = ',') word
+
+let rm_last_char str =
+  CCString.to_list str
+  |> CCList.take ((CCString.length str) - 1)
+  |> CCString.of_list
+
+let list_join f ch xs =
+  List.fold_left (fun txt x -> txt ^ (f x) ^ ch ) "" xs
+  |> rm_last_char
+
+let identity a = a
+
+let long_float_str fl =
+  Printf.sprintf "%.6f" fl
