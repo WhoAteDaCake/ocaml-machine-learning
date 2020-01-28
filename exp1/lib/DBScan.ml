@@ -56,7 +56,7 @@ let run eps min_pts matrix =
 				loop nbs
 	) status 
 	in
-	CCArray.fold_left (fun (idx, map) status -> match status with
+	let (_, map, noise) = CCArray.fold_left (fun (idx, map, noise) status -> match status with
 	| Cluster c_idx ->
 		let map = IntMap.update c_idx (fun ls_opt ->
 			match ls_opt with
@@ -64,6 +64,8 @@ let run eps min_pts matrix =
 			| Some ls -> Some (idx::ls)
 		) map 
 		in
-		(idx + 1, map) 
-	| _ -> (idx + 1, map)
-	) (0, IntMap.empty) status
+		(idx + 1, map, noise) 
+	| Noise -> (idx + 1, map, idx::noise)
+	| _ -> (idx + 1, map, noise)
+	) (0, IntMap.empty, []) status
+	in (map, noise)

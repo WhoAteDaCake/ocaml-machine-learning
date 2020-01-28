@@ -29,9 +29,11 @@ let freqs_exn { freqs; _ } = match freqs with
 
 let idfs { idfs; _ } = idfs
 
+let document_name_of_index corpus index =
+	IntMap.find index corpus.index_map
+
 let document_of_index corpus index =
-	let id = IntMap.find index corpus.index_map in
-	StringMap.find id corpus.documents
+	StringMap.find (document_name_of_index corpus index) corpus.documents
 
 let document_distances corpus doc =
 	let mtx = distances_exn corpus in

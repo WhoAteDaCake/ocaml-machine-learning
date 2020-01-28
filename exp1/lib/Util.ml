@@ -16,40 +16,55 @@ let get_similarity id1 id2 mtx dict =
 	in
 	Matrix.get mtx (get id1) (get id2)
 
-let file_path = "/home/augustinas/open-source/mine/machine-learning/exp1/dataset/hansard/3.csv"
 let file_path = "/home/augustinas/open-source/mine/machine-learning/exp1/dataset/fake/test.csv"
+let file_path = "/home/augustinas/open-source/mine/machine-learning/exp1/dataset/hansard/3.csv"
 
 let row_to_str row f =
-		CCArray.fold_left (fun str v ->
+		CCList.fold_left (fun str v ->
 			Printf.sprintf "%s%s," str (f v)
 		) "" row
 		|> Shared.rm_last_char
 
-(* let csv_to_pairs fname = 
-	let file = Csv.load fname in
-	(* Remove last *)
-	let rows = Csv.to_array file |> CCArray.to_list |> CCList.tl in
-	CCList.fold_left (fun acc xs ->
-		match CCArray.to_list xs with
-		| k::t::xs -> (k, t)::acc 
-		| _ -> acc
-	) [] rows
- *)
+let times = ref []
+
+(* We always reverse it as we need to compare to the lastest time *)
+let track_time label a = match CCList.rev !times with
+| [] ->
+	let _ = times := (Unix.time ())::(!times) in
+	a
+| x::_ ->
+	let now = Unix.time () in
+	let _ = Printf.printf "[%d][%s] Time elapsed %s\n" (CCList.length !times) label (Shared.long_float_str (now -. x)) in
+	let _ = times := now::(!times) in
+	a
+
 let run () =
 	let pairs = Helpers.csv_to_pairs file_path in
-	let corpus = Prepare.corpus pairs
+	let corpus = pairs
+		|> track_time "Pairs"
+		|> Prepare.corpus
+		|> track_time "Prepare"
 		|> Text.calculate_corpus_freqs
+		|> track_time "Corpus freqs"
 		|> Text.calculate_corpus_idfs
+		|> track_time "Idfs"
 		|> Text.calculate_corpus_vectors 2.0 0.75
-		|> Text.calculate_corpus_distances in
+		|> track_time "Vectors"
+		|> Text.calculate_corpus_distances
+		|> track_time "Distance matrix"
+	in
+	let ids_to_names ids =
+		CCList.map (fun idx -> Corpus.document_name_of_index corpus idx) ids
+	in
 	let matrix = Corpus.distances_exn corpus in
-	let _ = DBScan.run 0.5 2 matrix in
-(* 	let _ = CCList.iteri (fun idx cluster ->
-		let _ = Printf.printf "Cluster %d: \n" idx in
-		let _ = CCList.iter (fun id -> Printf.printf "%d, " id) cluster in
-		print_string "\n\n"
+	let (clusters, noise) = DBScan.run 0.1 2 matrix in
+	let _ = track_time "Clusters" () in
+	let _ = print_endline "" in
+	let _ = IntMap.iter (fun k ls ->
+		Printf.printf "(%d) [%s]" k (row_to_str (ids_to_names ls) Shared.identity)
 	) clusters
-	in *)
+	in
+	let _ = Printf.printf "\nNoise (%d): [%s] \n\n" (CCList.length noise) (row_to_str (noise |> ids_to_names) Shared.identity) in
   let mtx_str = Matrix.to_string matrix Shared.long_float_str in
   let _ = print_endline mtx_str in
   ()
