@@ -41,14 +41,15 @@ let run () =
 		|> Text.calculate_corpus_freqs
 		|> Text.calculate_corpus_idfs
 		|> Text.calculate_corpus_vectors 2.0 0.75
-		|> Text.calculate_corpus_similarity in
-	let matrix = Corpus.similarity_exn corpus in
-	let clusters = DBScan.run 0.025595 2 matrix in
-	let _ = CCList.iter (fun cluster ->
+		|> Text.calculate_corpus_distances in
+	let matrix = Corpus.distances_exn corpus in
+	let _ = DBScan.run 0.5 2 matrix in
+(* 	let _ = CCList.iteri (fun idx cluster ->
+		let _ = Printf.printf "Cluster %d: \n" idx in
 		let _ = CCList.iter (fun id -> Printf.printf "%d, " id) cluster in
 		print_string "\n\n"
 	) clusters
-	in
+	in *)
   let mtx_str = Matrix.to_string matrix Shared.long_float_str in
   let _ = print_endline mtx_str in
   ()

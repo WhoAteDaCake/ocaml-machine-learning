@@ -10,3 +10,5 @@ TODO: document relevance based on terms in the paper
 Unzip by using `for i in *.gz; do gunzip $i; done`
 
 Remove french ones `for i in *.f; do rm $i; done`
+
+To cut down a csv size `head -n 50 file.csv > smaller.csv` 

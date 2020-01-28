@@ -105,10 +105,10 @@ let get_term_vectors doc1 doc2 = match (Document.vectors doc1, Document.vectors 
 	) v1 ([], [])
 | _ -> ([], [])
 
-let calculate_corpus_similarity corpus =
+let calculate_corpus_distances corpus =
 	let size = Corpus.size corpus in 
 	let matrix = Matrix.make size size 0.0 in
-	let similarity = Matrix.fold matrix (fun x y acc ->
+	let distances = Matrix.fold matrix (fun x y acc ->
 		(*
 			Distance from self is always 0
 			And matrix is symetric, so if value is set
@@ -119,11 +119,11 @@ let calculate_corpus_similarity corpus =
 		else 
 			(* Extract values of a vector *)
 			let (v1, v2) = get_term_vectors (Corpus.document_of_index corpus x) (Corpus.document_of_index corpus y) in
-			let similarity = Math.cosine_similarity v1 v2  
+			let distance = 1.0 -. (Math.cosine_similarity v1 v2)
 			in
 			(* The matrix is symetric *)
-			let acc = Matrix.set acc x y similarity in
-			Matrix.set acc y x similarity 
+			let acc = Matrix.set acc x y distance in
+			Matrix.set acc y x distance 
 	) matrix in
-	{ corpus with similarity = Some similarity }
+	{ corpus with distances = Some distances }
 	

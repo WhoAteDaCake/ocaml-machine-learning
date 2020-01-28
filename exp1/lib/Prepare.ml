@@ -23,7 +23,7 @@ let corpus entries =
 		documents;
 		index_map;
 		size;
-		similarity = None;
+		distances = None;
 		freqs = None;
 		idfs = None;
 	}

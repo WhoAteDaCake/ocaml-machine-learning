@@ -4,7 +4,7 @@ type t = {
 	documents: Document.t StringMap.t;
 	index_map: string IntMap.t;
 	size: int;
-	similarity: (float Matrix.t) option;
+	distances: (float Matrix.t) option;
 	freqs: (int StringMap.t) option;
 	idfs: (float StringMap.t) option;
 }
@@ -15,9 +15,9 @@ let index_map { index_map; _ } = index_map
 
 let size { size; _ } = size
 
-let similarity { similarity; _ } = similarity
+let distances { distances; _ } = distances
 
-let similarity_exn { similarity; _ } = match similarity with
+let distances_exn { distances; _ } = match distances with
 | None -> raise (Failure "Similarities not calculated")
 | Some mtx -> mtx
 
@@ -33,16 +33,8 @@ let document_of_index corpus index =
 	let id = IntMap.find index corpus.index_map in
 	StringMap.find id corpus.documents
 
-(* let similarity_between corpus doc1 doc2 =
-	let idx_of id = 
-		let doc = StringMap.find id corpus.documents in
-		Document.index doc
-	in
-	let mtx = match corpus.similarity with
-	| None -> raise (Failure "Similarities not calculated") *)
-
-let document_similarities corpus doc =
-	let mtx = similarity_exn corpus in
+let document_distances corpus doc =
+	let mtx = distances_exn corpus in
 	let idx = 
 		let doc = StringMap.find doc corpus.documents in
 		Document.index doc
